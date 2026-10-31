@@ -112,4 +112,9 @@ class AppScanner(private val ctx: Context) {
         if (this is BitmapDrawable) return bitmap
         val w = intrinsicWidth.coerceAtLeast(1)
         val h = intrinsicHeight.coerceAtLeast(1)
-       
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        setBounds(0, 0, w, h)
+        draw(Canvas(bmp))
+        return bmp
+    }
+}
