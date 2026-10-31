@@ -64,8 +64,8 @@ object DexPatcher {
         m.accessFlags,
         m.parameters,
         m.annotations,
-        m.parameterAnnotations,
-        m.annotationDefault,
+        null,
+        null,
         impl,
         m.hiddenApiRestrictions,
     )
@@ -135,7 +135,7 @@ object DexPatcher {
     }
 
     private val PREFIX = listOf(
-        "Lcom/google/firebase/analytics", "Lcom/google/android/gms/analytics",
+        "Lcom/google/firebase/analytics", "com/google/android/gms/analytics",
         "Lcom/google/firebase/crashlytics", "Lcom/facebook/appevents", "Lcom/appsflyer",
         "Lcom/adjust/sdk", "Lcom/amplitude", "Lcom/mixpanel", "Lcom/onesignal",
         "Lio/branch", "Lcom/segment", "Lcom/braze", "Lcom/clevertap", "Lcom/mparticle",
