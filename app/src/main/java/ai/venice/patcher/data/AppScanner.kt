@@ -90,6 +90,7 @@ class AppScanner(private val ctx: Context) {
             trackers = scanTrackers(info.sourceDir),
             icon = info.loadIcon(pm).toBitmap()?.asImageBitmap(),
             info = info,
+            pkgInfo = pkg,
         )
     }
 
@@ -111,8 +112,4 @@ class AppScanner(private val ctx: Context) {
         if (this is BitmapDrawable) return bitmap
         val w = intrinsicWidth.coerceAtLeast(1)
         val h = intrinsicHeight.coerceAtLeast(1)
-        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        draw(Canvas(bmp))
-        return bmp
-    }
-}
+       
