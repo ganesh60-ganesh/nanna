@@ -65,3 +65,22 @@ jobs:
           name: patcher-debug-apk
           path: dist/
           if-no-files-found: error
+- name: Extract error
+        if: failure()
+        run: |
+          {
+            echo "=== What went wrong ==="
+            grep -A 30 "What went wrong" build.log || true
+            echo
+            echo "=== First errors ==="
+            grep -n -E "^e: |error: |FAILURE: |Could not |Caused by" build.log | head -40 || true
+          } > error.txt
+          cat error.txt
+
+      - name: Upload error
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error
+          path: error.txt
+          if-no-files-found: ignore
