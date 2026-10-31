@@ -41,7 +41,7 @@ object DexPatcher {
                     methods += m
                     continue
                 }
-                methods += ImmutableMethod.of(m, build(impl, kind))
+                methods += withBody(m, build(impl, kind))
                 dirty = true
                 hits++
             }
@@ -56,6 +56,19 @@ object DexPatcher {
         }
         return hits
     }
+
+    private fun withBody(m: Method, impl: MethodImplementation): Method = ImmutableMethod(
+        m.definingClass,
+        m.name,
+        m.returnType,
+        m.accessFlags,
+        m.parameters,
+        m.annotations,
+        m.parameterAnnotations,
+        m.annotationDefault,
+        impl,
+        m.hiddenApiRestrictions,
+    )
 
     private fun kindFor(m: Method, impl: MethodImplementation, specs: Set<PatchSpec>): Ret? = when {
         PatchSpec.Ads in specs && isAd(m) -> Ret.VOID
