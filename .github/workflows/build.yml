@@ -65,7 +65,9 @@ jobs:
           name: patcher-debug-apk
           path: dist/
           if-no-files-found: error
-- name: Extract error
+
+
+        - name: Extract error
         if: failure()
         run: |
           {
