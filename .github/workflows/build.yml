@@ -15,59 +15,43 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: Verify layout
         run: |
+          echo "--- repo root ---"
           ls -la
-          test -f settings.gradle.kts
-          test -f app/build.gradle.kts
+          test -f settings.gradle.kts || { echo "::error::settings.gradle.kts missing from repo root"; exit 1; }
+          test -f app/build.gradle.kts || { echo "::error::app/build.gradle.kts missing"; exit 1; }
+          test -f app/src/main/AndroidManifest.xml || { echo "::error::manifest missing"; exit 1; }
 
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
       - name: Build debug
         run: |
           set -o pipefail
-          gradle assembleDebug --no-daemon --stacktrace --info 2>&1 | tee build.log
+          gradle assembleDebug --no-daemon --stacktrace --console=plain 2>&1 | tee build.log
 
       - name: Show error tail
         if: always()
         run: tail -60 build.log || true
 
-      - name: Upload log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          if-no-files-found: ignore
-
-      - name: Collect APK
-        if: success()
-        run: |
-          mkdir -p dist
-          find app/build/outputs/apk -name '*.apk' -exec cp {} dist/patcher-debug.apk \;
-
-      - uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: patcher-debug-apk
-          path: dist/
-          if-no-files-found: error
-
-
-        - name: Extract error
+      - name: Extract error
         if: failure()
         run: |
           {
@@ -75,8 +59,9 @@ jobs:
             grep -A 30 "What went wrong" build.log || true
             echo
             echo "=== First errors ==="
-            grep -n -E "^e: |error: |FAILURE: |Could not |Caused by" build.log | head -40 || true
+            grep -n -E "^e: |error: |FAILURE: |Could not |Caused by|> Task .* FAILED" build.log | head -40 || true
           } > error.txt
+          echo "--- error.txt ---"
           cat error.txt
 
       - name: Upload error
@@ -86,3 +71,29 @@ jobs:
           name: error
           path: error.txt
           if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload full log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Collect APK
+        if: success()
+        run: |
+          mkdir -p dist
+          find app/build/outputs/apk -name '*.apk' -exec cp {} dist/patcher-debug.apk \;
+          sha256sum dist/patcher-debug.apk > dist/patcher-debug.apk.sha256
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patcher-debug-apk
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
