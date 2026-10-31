@@ -1,0 +1,5 @@
+-keep class org.jf.dexlib2.** { *; }
+-keep class com.android.apksig.** { *; }
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**
+-dontwarn org.jf.dexlib2.**
